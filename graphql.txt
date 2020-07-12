@@ -816,14 +816,30 @@ mutation newPhoto {
 mutation newPhoto($name: String!, $description: String) {
     postPhoto(name: $name, description: $description)
 }
-в окне Query Variables (Переменные запроса):
+-------в окне Query Variables (Переменные запроса):
 {
     "name": "sample photo A",
     "description": "A sample photo for our dataset"
 }
 
 -----Распознаватели типов. 117
-
+-- новый вариант добавления фоток через переменные в Query Variables
+mutation newPhoto($name: String!, $description: String) {
+    postPhoto(name: $name, description: $description) {
+        id
+        name
+        description
+    }
+}
+------вернуть массив всех добавленных объектов Photo:
+query listPhotos {
+    allPhotos {
+        id
+        name
+        description
+    }
+}
+не нужно сохранять URL-адреса, потому что они могут генерироваться автоматически.
 
 
 
