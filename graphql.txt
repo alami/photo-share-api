@@ -881,7 +881,17 @@ query photos {
         }
     }
 }
+"многие ко многим"
+    inPhotos: [Photo!]! ## фотографий, в которых пользователь
 
+query listPhotos {
+    allPhotos {
+    url
+    taggedUsers {
+        name
+        }
+    }
+}
 
 -----Пользовательские скаляры. ...130
 -----Сервер apollo-server-express. ..135
