@@ -872,7 +872,15 @@ mutation newPhoto($input: PostPhotoInput!) {
   type User - ориентированный граф
   type Photo ..postedBy: User! - неориентированный граф
 
-
+query photos {
+    allPhotos {
+    name
+    url
+    postedBy {
+        name
+        }
+    }
+}
 
 
 -----Пользовательские скаляры. ...130

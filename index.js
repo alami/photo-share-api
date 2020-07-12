@@ -80,7 +80,16 @@ const resolvers = {
         }
     },
     Photo: {
-        url: parent => `http://yoursite.com/img/${parent.id}.jpg`
+        url: parent => `http://site.com/img/${parent.id}.jpg`,
+        postedBy: parent => {
+            return users.find(u => u.githubLogin === parent.githubUser)
+        }
+    },
+    User: {
+        postedPhotos: parent => {
+            return photos.filter(p => p.githubUser ===
+                parent.githubLogin)
+        }
     }
 }
 const server = new ApolloServer({
