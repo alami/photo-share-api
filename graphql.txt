@@ -1,0 +1,884 @@
+GraphQL: язык запросов для современных веб-приложений. Бэнкс Алекс, Порселло Ева — СПб.: Питер, 2019. — 240 с.
+
+Глава 1. Добро пожаловать в GraphQL. ..13
+Глава 2. Теория графов29
+Глава 3. Анатомия запросов GraphQL. ....47
+Глава 4. Схема GraphQL. ....78
+Глава 5. API GraphQL. ..111
+Глава 6. Клиенты GraphQL. ....161
+Глава 7. GraphQL в реальном мире. .196
+
+https://github.com/moonhighway/learning-graphql
+
+--------------------------------------------------
+Глава 1. Добро пожаловать в GraphQL. ..13
+--------------------------------------------------
+Что такое GraphQL. ....14
+
+
+Спецификация GraphQL. 17
+Принципы проектирования GraphQL. .18 - Иерархичность. Строгая типизация.
+Происхождение GraphQL. ....18  - Facebook.2012.2015.2016
+История транспортировки данных. 19
+  Удаленный вызов процедур. ....19 - RPC
+  Простой протокол доступа к объектам. ..20  -SOAP
+  Архитектура REST. ...20
+Недостатки архитектуры REST. .21
+  Чрезмерная выборка данных . .22
+  Недостаточная выборка данных. ..24
+  Управление конечными точками REST. ...26
+GraphQL в реальном мире. ...27
+  много клиентов GraphQL, но лидеры 
+  Relay (facebook.github.io/relay/) -используется Facebook, GitHub, Twitch и т.д. и 
+  Apollo (www.apollographql.com) -  Airbnb, CNBC, The New York Times и Ticketmaster
+
+--------------------------------------------------
+Глава 2. Теория графов29
+--------------------------------------------------
+Терминология теории графов. ..32
+История теории графов. .35
+  Кенигсберг в далеком 1735 году. 
+  Эйлер (Leonhard Euler) - был преуспевающим швейцарским математиком
+  Количество ребер, или мостов, должно быть четным, если вы не хотите пересекать мост дважды.
+  Проблема кенигсбергских мостов стала первой теоремой теории графов.
+Деревья как графы. ...39  
+Графы в реальном мире. 43
+--------------------------------------------------
+Глава 3. Анатомия запросов GraphQL. ....47
+--------------------------------------------------
+   в SQL и в GraphQL означает одно и то же: язык запросов.
+   в SQL были интуитивно понятны команды: SELECT, INSERT, UPDATE и DELETE.
+ но Они предназначены для совершенно разных сред:
+ язык запросов для баз данных / для Интернета.
+   Вы отправляете SQL-запросы в базу данных.
+           Данные SQL хранятся в таблицах данных.
+   Вы от правляете GraphQL-запросы в API.
+     Данные GraphQL можно хранить в любом месте в одной базе данных
+     или нескольких файловых системах, API REST, веб-сокетах и других API GraphQL.
+ разный синтаксис:  для запроса данных
+ Вместо SELECT в GraphQL используется команда Query. 
+    Эта операция лежит в основе всего, что мы делаем с GraphQL. 
+ Вместо INSERT, UPDATE или DELETE GraphQL
+    переносит все указанные изменения данных в один тип данных: Mutation.
+    Поскольку GraphQL создан для Интернета, он включает тип Subscription (подписка),
+    который можно применять для отслеживания изменений данных через соединения сокетов.
+
+Запросы — это простые строки JSON, напр.  { allLifts {name}} ,
+которые отправляются в теле запросов POST в конечную точку GraphQL : 
+
+    curl 'http://snowtooth.herokuapp.com/' -H 'Content-Type: application/json'
+       --data '{"query":"{ allLifts {name }}"}'
+
+1 запрос=>1 ответ в терминале, кот.будет содержать JSON 
+ либо данные, которые вы запрашивали в поле с именем data,
+ либо поле errors, если что-то пошло не так
+
+    Чтобы изменить данные, мы можем отправить мутации, напр.
+    изменить статус с идентификатором panorama на OPEN.
+        mutation { setLiftStatus(id: "panorama" status: OPEN) { name status }}
+    curl ..... -H .... --data....... \"panorama\" ...
+
+Инструменты API GraphQL. ..50
+
+  GraphiQL. ...50
+
+  GraphQL Playground. .53
+     www.graphqlbin.com
+     можете установить локально с помощью инструмента Home-brew:
+     > brew cask install graphql-playground
+     или с сайта github.com/prisma/graphql-playground/releasesс
+
+  Открытые API GraphQL. .54
+
+    SWAPI (the Star Wars API) (graphql.org/swapi-graphql) Facebook-надстройка API SWAPI REST.
+    GitHub API developer.github.com/v4/explorer
+    Yelp www.yelp.com/developers/graphiql
+
+----GraphQL-запрос. ...55
+------узлы
+«Снежный клык» (Snowtooth) — выдуманный горнолыжный курорт.
+Сведения о состоянии подъемников и лыжных трасс.
+Лыжный патруль может открывать и закрывать подъемники (allLifts) и трассы (trails) непосредственно со смартфона.
+https://github.com/MoonHighway/snowtooth
+  project website using GraphQL Playground: http://snowtooth.moonhighway.com.
+snowtooth/src/data/lifts.json[
+       {
+         "name": "Astra Express",
+         "capacity": 3,--вместимости по людям на 1 подъемнике (скаляр)
+         "status": "OPEN",
+         "night": false,
+         "elevationGain": 899,
+         "time": "8 minutes",
+         "trails": [
+           "blue-bird",
+           "blackhawk",
+           "ducks-revenge",
+           "ice-streak",
+           "parachute",
+           "goosebumps"
+         ],
+         "id": "astra-express"
+       },
+snowtooth/src/data/trails.json [
+         {
+           "name": "Blue Bird",
+           "lift": ["astra-express"],
+           "difficulty": "intermediate", --сложность
+           "status": "OPEN",
+           "groomed": true,   ------подготовлена ли трасса
+           "snowmaking": false,
+           "trees": false,
+           "night": false,
+           "id": "blue-bird"
+         },
+-------- queries ----
+allLifts(...):  [Lift!]!
+allTrails(...): [Trail!]!
+Lift(...):      Lift!
+Trail(...):     Trail!
+liftCount(...): Int!
+trailCount(...): Int!
+gnar:           String!
+sweet:          String!
+------ mutations ---------
+setLiftStatus(...):  Lift!
+setTrailStatus(...): Trail!
+------- subscriptions -----
+
+liftStatusChange:  Lift
+trailStatusChange: Trail
+
+
+query { allLifts { name status } }
+query trails { allTrails {name difficulty}}
+query liftsAndTrails {  liftCount(status: OPEN)  //HOLD //CLOSED  6 3 2 = 11
+                        allLifts {name status}
+                        allTrails {name difficulty}  }
+query — это тип GraphQL. Мы называем его "корневым типом" нашего документа запроса.
+поля, которые нам нужны, заключая их в фигурные скобки. Эти блоки называются "выборками":
+можете встраивать множество выборок одну в другую.
+
+Способ фильтрации результатов GraphQL-запроса состоит в передаче "аргументов" запроса.
+
+------Ребра и соединения. 59
+поля могут быть
+ либо скалярными типами (листья) - 5 встроенных:
+     целочисленные (Int), с плавающей запятой (Float),
+     строки (String), логические (Boolean) и уникальные идентификаторы (ID)
+ либо типами объектов - группы из 1 или нескольких полей, которые вы определяете в своей схеме.
+     Они устанавливают форму объекта JSON, который должен быть возвращен
+     можем связать объекты вместе, запросив один объект для получения информации о связанных объектах
+---напр.,список маршрутов, к которым мы можем получить доступ с определенного подъемника:
+query trailsAccessedByJazzCat {
+  Lift(id:"jazz-cat") { ---запрашиваем некоторые данные о канатной дороге Jazz Cat.
+    capacity                        --(тип скаляр) вместимости по людям на 1 подъемнике
+    trailAccess { name difficulty} -- (тип объекта)отфильтрованный список доступных маршрутов
+    }
+  }
+--Чтобы наш граф считался неориентированным, нам нужно было бы вернуться к вершине Lift из узла Trail:
+query liftToAccessTrail {    ---подъемники, которые доставляют лыжников
+    Trail(id:"dance-fight") {---на эту трассу
+        groomed              ---подготовлена ли трасса
+        accessedByLifts {  name  capacity  }
+        }
+    }
+
+Фрагменты. ....61
+  -  это выборки, которые можно повторно использовать в нескольких операциях
+query {
+    Lift(id: "jazz-cat") {
+        name status capacity  night elevationGain       <<<<<<<<<<<<<<<---------
+        trailAccess {name difficulty }
+        }
+    Trail(id: "river-run") {
+        name
+        difficulty
+        accessedByLifts { name status capacity night elevationGain } <<<<<------
+        }
+    }
+
+---создать фрагмент, который поможет уменьшить избыточность в нашем запросе:-->>>
+fragment liftInfo on Lift { name status capacity  night elevationGain }
+fragment trailInfo on Trail {
+     name
+     difficulty
+     accessedByLifts { ...liftInfo }
+}
+query {
+    Lift(id: "jazz-cat") {
+        ...liftInfo
+        trailAccess { ...trailInfo }
+        }
+    Trail(id: "river-run") {
+        ...trailInfo
+        }
+    }
+Объединения ...65
+  - связывающие разные типы объектов.
+          напр.https://graphqlbin.com/v2/ANgjtr -   планировщик для студентов,
+ чтобы они добавляли в повестку дня мероприятия, внеурочные занятия и семинары.
+query schedule {
+    agenda {
+    ...on Workout { name reps }   ----У встроенных фрагментов нет имен.
+    ...on StudyGroup { name subject students }
+    }
+}
+Интерфейсы ..67
+ - еще вариант работы с несколькими типами объектов, которые могут быть возвращены в одном поле.
+ - абстрактный тип, устанавливающий список полей, которые должны быть реализованы в похожих типах объектов.
+    https://graphqlbin.com/v2/yoyPfz
+    - интерфейс ScheduleItem. Этот интерфейс определяет поля: name, start time и end time
+Любой объект (StudyGroup и Workout), который реализует интерфейс ScheduleItem,
+     должен реализовать указанные поля.
+query schedule {
+    agenda {name start end }
+    }
+
+Мутации. ....69
+ - как запросы. У них есть имена. Они могут иметь выборки, которые возвращают типы объектов или скаляры
+
+mutation burnItDown {   ---корневой тип данных
+    deleteAllData   --возвращает скалярный тип: true/false
+    }           --удаление, зависит от реализации API (гл5).
+
+mutation createSong {  ---что-нибудь создадим:
+    addSong(title:"No Scrubs", numberOne: true,
+            performerName:"TLC") {     id    title    numberOne    }
+    }    ----вернет тип Song, содержащий подробные сведения о только что созданной песне
+
+mutation closeLift {  ---изменить статус канатной дороги
+    setLiftStatus(id: "jazz-cat" status: CLOSED) {name status}
+    }
+
+переменные - вместо статического значения в запросе, передавать динамические значения
+    кроме тестирования,
+    позволит динамически вносить изменения позже, при подключении клиентского интерфейса.
+
+mutation createSong($title:String! $numberOne:Int $by:String!) {
+    addSong(title:$title, numberOne:$numberOne, performerName:$by) { id title numberOne }
+    }
+{
+    "title": "No Scrubs",
+    "numberOne": true,
+    "by": "TLC"
+}
+
+Подписки. ...71
+  -также является корневым типом
+ - получать обновления в реальном времени с сервера.
+ - позволяет перехватывать события API GraphQL для изменения данных в реальном времени.
+ - отличие от запросов и мутаций, подписки остаются открытыми
+    необходимо отказаться от подписки: кнопку остановки/закрыть вкладку браузера
+
+Facebook-Разработчики хотели отображать в режиме реального времени
+ информацию о количестве лайков (Live Likes), которые получал пост, не обновляя страницу.
+
+subscription {  --отслеживаем изменения статуса подъемника через WebSocket
+    liftStatusChange { name capacity status }
+    }
+
+
+
+Самодиагностика. .73
+  -запрашивать детали о текущей схеме API
+  -видим все типы, доступные в API, включая корневые, пользовательские и даже скалярные.
+
+
+query {
+    __schema {
+        types { name description }
+        }
+     }
+Если нужны данные определенного типа, мы можем, выполняя запрос __type,
+    отправить имя нужного типа в качестве аргумента:
+query liftDetails {
+    __type(name:"Lift") { name fields { name description type { name } }}
+}
+------------какие поля доступны для корневых типов:
+query roots {
+  __schema {
+    queryType {  ...typeFields }
+    mutationType { ...typeFields }
+    subscriptionType { ...typeFields }
+  }
+}
+fragment typeFields on __Type { name fields { name } }
+
+Абстрактные синтаксические деревья (АСД).... 75
+  запрос в API GraphQL
+  1) лексированием или лексическим анализом.
+  2) разбирается на АСД и проверяется до запуска операции
+  документ GraphQL -содержит хотя бы 1/список
+    определение/й (1 из 2 типов:
+       OperationDefinition (1 из 3 типов операций: mutation, query или subscription.
+            {
+                SelectionSet - фактические поля вместе с их аргументами
+            }
+       FragmentDefinition)
+
+схема GraphQL - конкретноЕ определение того,
+ какие операции и поля доступны для конкретного сервиса GraphQL
+--------------------------------------------------
+Глава 4. Схема GraphQL. ....78
+--------------------------------------------------
+Вместо представления API в виде
+группы конечных точек REST
+как коллекции типов => схема
+
+Schema First — это методология проектирования, когда все оповещаются о типах данных.
+=> Schema Definition Language (SDL)
+
+-----Определение типов. ..79
+PhotoShare - скомпонуем схему приложения для обмена фотографиями
+    2 основных типа: User и Photo.
+Типы. ...79
+    тип  - представляет собой пользовательский объект,
+    и эти объекты описывают основные функции вашего приложения.
+    Тип имеет
+    поля, которые представляют данные, связанные с каждым объектом
+     - возвращает определенный тип данных:
+      целое число или строка, так и пользовательский тип объекта или список типов.
+Схема представляет собой набор определений типов в файле JavaScript .graphql
+
+Скалярные типы. .81
+
+type Photo { --тип
+    id: ID!  --его поля      ! - поле не может быть нулевым (null), т.е.
+    name: String!            --должны возвращать некоторые данные в каждом запросе
+    url: String!             --^
+    description: String      --может вернуть значение null (необязательное)
+    category: PhotoCategory!
+    postedBy: User!          --<,84>1-сторонняя связь между двумя типами:Photo и User.(Ребро)
+}
+
+ID - скалярный тип, когда нужно возвращать уникальный идентификатор
+     Значение JSON - строка, которая будет проверена на уникальность.
+
+Перечисления. ....81
+    enum PhotoCategory { SELFIE PORTRAIT ACTION LANDSCAPE GRAPHIC }
+
+Соединения и списки. 82
+    [String] определяет список строк
+    списки также могут состоять из нескольких типов, если мы используем типы union или interface
+Соединения «один к одному». .84
+   В теории графов соединение или связь между двумя объектами называется ребром.
+   Ребро, соединяющее два узла, называется  postedBy
+                                      Photo ------->  User
+type User {
+    githubLogin: ID!          --Когда пользователь авторизуется,
+    name: String              --При желании, если пользователь добавит свое имя
+    avatar: String            -- или фотографию
+    postedPhotos: [Photo!]!   --,85
+    }
+
+Соединения «один ко многим». ....85
+  обеспечить путь назад от типов User к типам Photo,
+  чтобы при возможности поддерживать сервисы GraphQL ненаправленными.
+
+type Query {  ---Добавление типа Query определяет запросы, доступные в нашем API.
+    totalPhotos:Int!
+    allPhotos:  [Photo!]!  ---Ненулевой список И ненулевое поле
+    totalUsers: Int!
+    allUsers:   [User!]!
+    }
+schema {
+    query: Query  ---добавили тип запроса Query в schema как файл
+    }
+
+query {  ---Теперь наши фотографии и пользователи могут быть выбраны со следующей строкой запроса:
+    totalPhotos
+    allPhotos {  name  url }
+}
+
+Соединения «многие ко многим». .87
+type User {    ---напр. когда пользователь публикует фотограции
+    ...
+    inPhotos: [Photo!]!
+    }
+type Photo {  ---идентифицировать других пользователей на каждой фотографии - тегирование,
+    ...
+    taggedUsers: [User!]!
+    }
+соединение «многие ко многим» состоит из двух соединений «один ко многим».
+Сквозные типы...88  напр. дружбу между пользователями.
+type User {
+    friends: [User!]!
+    }
+type User {
+    friends: [Friendship!]!
+    }
+---сквозным типом, потому что это узел, который предназначен для соединения двух узлов.
+type Friendship {        --информацию о самой дружбе:
+    friend_a: User!
+    friend_b: User!
+    howLong: Int!        --- как давно знают друг друга
+    whereWeMet: Location --- или где они встретились.
+}
+
+------Списки разных типов. ....89
+Пример расписание, состоящее из разных событий:
+    информация о семинаре или отработке занятия может быть совершенно иной,
+    или как о списке различных видов деятельности.
+Типы объединения..90
+query schedule {
+    agenda {          ---задавал повестку дня, возвращая
+        ...on Workout { ---отработка занятия или семинара
+        name
+        reps
+        }
+    ...on StudyGroup {
+        name
+        subject
+        students
+        }
+    }
+}
+union AgendaItem = StudyGroup | Workout
+     ---объединяет семинары и отработки занятий в виде одного типа
+type StudyGroup {
+    name: String!
+    subject: String
+    students: [User!]!
+    }
+type Workout {
+    name: String!
+    reps: Int!
+    }
+type Query {
+    agenda: [AgendaItem!]! ---как список отработок или семинаров
+}
+union = StudyGroup | Workout | Class | Meal | Meeting | FreeTime
+
+Интерфейсы ... 91
+   - Другим способом обработки полей, которые могут содержать разные типы,
+абстрактные типы, которые могут быть реализованы как типы объекта.
+определяет все поля, которые должны быть включены в любой объект, который его реализует
+
+query schedule {
+    agenda { <---запрос для повестки дня, интерфейс для возврата полей по разным элемен
+        name   ^--Неважно, какой тип элемента расписания у нас есть,
+        start  ^--все они нуждаются в уточнении  имени и времени
+        end
+        ...on Workout {
+            reps
+            }
+    }
+}
+scalar DataTime
+interface AgendaItem { --интерфейс-абстрактный тип, кот. могут реализовать другие типы.
+    name: String!      --но должен содержать поля, определенные здесь(интерфейсом)
+    start: DateTime!
+    end: DateTime!
+    }
+type StudyGroup implements AgendaItem {  ---реализуют интерфейс
+    name: String!
+    start: DateTime!
+    end: DateTime!
+    participants: [User!]!  ---есть еще  topic и список участников
+    topic: String!
+    }
+type Workout implements AgendaItem {   ---отработки занятия реализуют интерфейс
+    name: String!
+    start: DateTime!
+    end: DateTime!
+    reps: Int!                 --еще есть повторы
+    }
+type Query {
+    agenda: [AgendaItem!]!
+    }
+рекомендуется применять :
+    объединения - если объекты содержат совершенно разные поля,
+    интерфейс - если тип объекта должен содержать определенные поля для взаимодействия с другим типом объекта
+
+
+Аргументы. .93
+ - могут быть добавлены в любое поле, чтобы отправлять данные, которые могут повлиять на резуль
+   Точно так же, как поле, аргумент должен иметь тип.
+ напр. когда вы хотите выбрать только одного пользователя или одну фотографию
+type Query {
+    ...
+    User(githubLogin: ID!): User!   --!!!!! Аргументы не должны быть ненулевыми
+    Photo(id: ID!):         Photo!  --иначе парсер GraphQL вернет ошибку.
+    }
+query {
+    User(githubLogin: "MoonTahoe") { ---выбирает только имя и аватар MoonTahoe
+        name
+        avatar
+    }
+}
+query {
+    Photo(id: "14TH5B6NS4KIG3H4S") { --информацию об отдельной фотографии по ид-ру
+        name
+        description
+        url
+    }
+}
+-----Фильтрация данных. 94  --аргументы в качестве необязательных параметров
+!!!!! Аргументы не должны быть ненулевыми
+Пагинация данных ..95
+type Query {
+    ...
+    allUsers(first: Int=50 start: Int=0): [User!]!
+    allPhotos(first: Int=25 start: Int=0): [Photo!]!
+    }
+query {
+    allUsers(first: 10 start: 90) {
+        name
+        avatar
+        }
+    }
+pages = pageSize/total
+
+Сортировка  ...96
+
+enum SortDirection {
+    ASCENDING
+    DESCENDING
+    }
+enum SortablePhotoField {----чтобы сортировать фотографии не по любому полю
+    name                 а только из этих 4х
+    description
+    category
+    created
+    }
+Query {
+    allPhotos(
+        sort: SortDirection = DESCENDING
+        sortBy: SortablePhotoField = created
+    ): [Photo!]!
+}
+=> управлять сортировкой фотографий при выдаче запроса allPhotos:
+query {
+   allPhotos(sortBy: name)
+   }
+!!!! добавлять аргументы к любому полю, а не только к полям типа Query
+type User {
+    postedPhotos(
+        first: Int = 25
+        start: Int = 0
+        sort: SortDirection = DESCENDING
+        sortBy: SortablePhotoField = created
+        category: PhotoCategory
+    ): [Photo!]
+
+Мутации. ....98
+    - только тогда, когда действие или событие что-то изменит в отношении состояния нашего приложения
+    - как глаголы в вашем приложении.
+    -войти в систему, опубликовать и сопроводить тегами фотографии.
+     =>  Все эти действия меняют что-то в состоянии приложения.
+type Mutation {
+    postPhoto(
+            name: String!
+            description: String
+            category: PhotoCategory=PORTRAIT
+        ): Photo!
+    }
+schema {
+    query: Query
+    mutation: Mutation
+    }
+!!! Добавить эти мутации в корневой тип мутации в нашей схеме
+!!!  и сделать их доступными для клиента
+напр., Добавление поля postPhoto типа Mutation позволяет пользователям публиковать фотографии.
+ Или, по крайней мере, публиковать метаданные о фотографиях.
+ (загрузка фактических фотографий в главе 7)
+Например, пользователь может опубликовать фотографию, отправив следующую мутацию:
+!! Данный запрос выбирает все новые поля, сгенерированые на сервере,
+   после публикации фотографии.
+mutation {
+    postPhoto(name: "Sending the Palisades") {
+        id     --- ID, URL, дата и время создания (created)
+        url
+        created
+        postedBy { --- информацию о пользователе, который опубликовал
+--Если в настоящий момент он не авторизован, эта мутация должна возвращать ошибку.
+-главе 5, как аутентифицировать авторизованного пользователя, применяя токен доступа.
+            name
+        }
+    }
+}
+mutation postPhoto(   ---надо делать вашу мутацию многоразовой, т.е.
+    $name: String!    ---полезно объявлять для них переменные мутации (ch.3)...100
+    $description: String
+    $category: PhotoCategory
+) {
+    postPhoto(
+        name: $name
+        description: $description
+        category: $category
+    ) {
+        id
+        name
+        email
+    }
+}
+
+Типы ввода...101
+-чтобы аргументы для нескольких наших запросов и мутаций не стали  длинными
+input PostPhotoInput {  ---похож на тип объекта, но он был создан только для входных аргументов
+    name: String!
+    description: String
+    category: PhotoCategory=PORTRAIT
+    }
+type Mutation {
+    postPhoto(input: PostPhotoInput!): Photo!
+}
+--при отправке мутации postPhoto сведения о новой фотографии должны быть включены в один объект:
+mutation newPhoto($input: PostPhotoInput!) {
+    postPhoto(input: $input) {
+        id
+        url
+        created
+    }
+}
+{               ---Наш ввод сгруппирован в объект JSON и отправлен вместе с мутацией
+    "input": {  --- в переменных запроса в виде ключа "input".
+        "name": "Hanging at the Arc",
+        "description": "Sunny on the deck of the Arc",
+        "category": "LANDSCAPE"  ---которая соответствует одной из категорий типа PhotoCategory.
+    }
+}
+!!! Типы ввода — это ключ к организации и написанию четкой схемы,
+                 для улучшения пагинации данных и фильтрации данных,
+input PhotoFilter {
+    category: PhotoCategory
+    createdBetween: DateRange
+    taggedUsers: [ID!]
+    searchText: String
+}
+input DateRange {
+    start: DateTime!
+    end: DateTime!
+}
+input DataPage {
+    first: Int = 25
+    start: Int = 0
+}
+input DataSort {
+    sort: SortDirection = DESCENDING
+    sortBy: SortablePhotoField = created
+}
+type User {
+    ...
+    postedPhotos(filter:PhotoFilter paging:DataPage
+    sorting:DataSort): [Photo!]!
+    inPhotos(filter:PhotoFilter paging:DataPage
+    sorting:DataSort): [Photo!]!
+}
+type Photo {
+    ...
+    taggedUsers(sorting:DataSort): [User!]!
+}
+==> написать запрос, который принимает некоторые довольно сложные входные данные, используя доступные типы ввода:
+query getPhotos(
+    $filter:PhotoFilter  --не обязательно принимает аргументы для 3 типов ввода
+    $page:DataPage
+    $sort:DataSort) {
+ allPhotos(filter:$filter paging:$page sorting:$sort) {
+      id
+      name
+      url
+      }
+ }
+
+
+{
+    "filter": {
+    "category": "ACTION",     ---найти все фотографии в категории ACTION,
+    "taggedUsers": ["MoonTahoe", "EvePorcello"], --на которых GitHub-пользователи
+    "createdBetween": {                          --MoonTahoe и EvePorcello
+        "start": "2018-11-6", ---поставили теги с 6 ноября по 31 мая,
+        "end": "2018-5-31"    --- то есть во время лыжного сезона.
+        }
+    },
+    "page": {
+        "first": 100  -- Кроме того, здесь мы запрашиваем первые 100 фотографий.
+    }
+}
+
+Возвращаемые типы. ....105
+ - иногда нам нужно возвращать метаинформацию о запросах и мутациях
+  в дополнение к фактическим данным полезной нагрузки.
+Например, когда пользователь авторизовался и прошел аутентификацию,
+     нам нужно вернуть токен в дополнение к полезной нагрузке для User.
+     получить код OAuth от GitHub (ch.5)
+type AuthPayload { ---тип пользовательского объекта, содержащий
+    user: User!    ---1)информацию об успешно авторизованном пользователе,
+    token: String! ---2)токен, для авторизации доп.запросов/мутаций (включая postPhoto)
+}
+type Mutation { ---- напр, отправить мутации для авторизации пользователя:
+    ...
+    githubAuth(code: String!): AuthPayload!  ---при успехе, вернем : как (1), так и (2)
+}
+
+Подписки ...106
+ -не отличаются от любого другого типа объекта
+ -подписки реализуют шаблон проектирования Pub/Sub вместе с каким-либо видом
+  транспорта реального времени,когда будем создавать сервис GraphQL в гл.7.
+type Subscription { ---быть в курсе создания новых типов Photo или User
+    newPhoto: Photo!
+    newUser: User!
+    }
+schema {
+    query: Query
+    mutation: Mutation
+    subscription: Subscription
+}
+
+type Subscription {
+    newPhoto(category: PhotoCategory): Photo!  --- могут использовать аргументы,
+    newUser: User!
+}
+subscription { ---напр. фильтры оповещать только о новых фотографиях в категории ACTION:
+    newPhoto(category: "ACTION") {
+        id
+        name
+        url
+        postedBy {
+        name
+        }
+    }
+}
+
+Документация схемы. ...107
+  Добавив три кавычки выше и ниже вашего комментария к каждому типу или полю или документировать аргументы.
+
+схема служит дорожной картой и контрактом между фронтенд- и бэкенд-командами
+В этой 4-главе мы создали схему для нашего фотоприложения.
+В следующих трех(5,6,7) главах мы покажем вам, как создать полноценное приложение GraphQL на основе только что созданной схемы.
+--------------------------------------------------
+Глава 5. API GraphQL. ..111
+--------------------------------------------------
+https://graphql.org/
+GraphQL.js
+модуль express-graphql, для сервера GraphQL с Express, и, в частности, первую библиотеку
+использовать Apollo Server, и интеграцию с Apollo Engine из коробки.
+Он также включает в себя платформу GraphQL Playground - запросов непосредственно в браузере
+----Настройка проекта. .112
+photo-share-api
+    npm init -y  --создадим новый проект npm
+=> создаст package.json и установит все параметры по умолчанию /-y/
+установим зависимости проекта: apollo-server и graphql,
+nodemon - будет сканировать файлы на предмет изменений и перезапускать сервер при их внесении:
+    npm install apollo-server graphql nodemon
+git remote add origin https://github.com/alami/photo-share-api.git
+git push -u origin master
+
+Схема -определяет разрешенные операции запроса (фокусировались на запросах)
+      -как связаны разные типы
+      -описывает требования к данным, но не выполняет работу по получению этих данных
+-----Распознаватели. .113
+      - функция, выполняет работу по получению этих данных
+
+const { ApolloServer } = require('apollo-server')
+const typeDefs = `--просто строка - определяет нашу схему
+    type Query {  --Определение типа описывает тип, который должно возвращать поле.
+        totalPhotos: Int!
+    }
+`
+   --- запрос, как totalPhotos, он должен быть подкреплен функцией распознавателя с тем же именем
+const resolvers = {
+    Query: {
+        totalPhotos: () => 42
+    }
+}
+const server = new ApolloServer({ typeDefs,  resolvers })
+server.listen().then(
+    ({url}) => console.log(`GraphQL Service running on ${url}`))
+
+http://localhost:4000. Попробуем следующий запрос:
+    {
+    totalPhotos
+    }
+Каждое поле должно иметь соответствующую функцию распознавателя.
+Распознаватель должен следовать правилам схемы — иметь то же имя, что и поле,
+  которое было определено в схеме, и возвращать тип данных, заданный схемой
+
+-----Корневые распознаватели. ....115
+ch4 => корневые типы Query, Mutation и Subscription
+- на верхнем уровне и
+- представляют собой все возможные точки входа в API
+
+Mutation: {
+    postPhoto(parent,--всегда ссылка на родительский объект, для доступа в args:
+                       здесь - мутация, не содержит каких-либо данных
+                       В документации может быть  _, root или obj.
+     args) { --аргументы GraphQL, которые были отправлены в данную операцию:
+               name и (не обязательно) description
+        photos.push(args)
+        return true
+    }
+}
+mutation newPhoto {
+    postPhoto(name: "sample photo")
+}
+                  ---добавления переменных ----------
+mutation newPhoto($name: String!, $description: String) {
+    postPhoto(name: $name, description: $description)
+}
+в окне Query Variables (Переменные запроса):
+{
+    "name": "sample photo A",
+    "description": "A sample photo for our dataset"
+}
+
+-----Распознаватели типов. 117
+
+
+
+
+-----Использование вводов и перечислений. ....122
+-----Ребра и соединения. ...124
+-----Пользовательские скаляры. ...130
+-----Сервер apollo-server-express. ..135
+-----Контекст. ..138
+-----Установка MongoDB. ....139
+-----Добавление базы данных к контексту. .140
+-----Авторизация с помощью аккаунта GitHub. ..143
+-----Настройка GitHub OAuth. ..144
+-----Процесс авторизации. .146
+-----Мутация githubAuth. ....147
+-----Аутентификация пользователей. 152
+-----Резюме. ....159
+--------------------------------------------------
+Глава 6. Клиенты GraphQL. ....161
+--------------------------------------------------
+API GraphQL. ..161
+Запросы на выборку. ...162
+Инструмент graphql-request. ..163
+Apollo Client. ..167
+Apollo Client и React. 168
+Настройка проекта. 169
+Конфигурирование Apollo Client. .169
+Компонент Query. ...172
+Компонент Mutation. ....177
+Авторизация. .179
+Авторизация пользователя. ...180
+Идентификация пользователя. ...185
+Работа с кэшем. ..187
+Политики выборки. 187
+Сохранение кэша...189
+Обновление кэша. ..190
+--------------------------------------------------
+Глава 7. GraphQL в реальном мире. .196
+--------------------------------------------------
+Подписки. .197
+Работа с подписками. ..197
+Управление подписками. ..204
+Выгрузка файлов. ....210
+Обработка выгрузок на сервере. 210
+Публикация новых фотографий с помощью Apollo Client. ....212
+Безопасность. 221
+Тайм-ауты запроса. 221
+Ограничения данных. ..222
+Ограничение глубины запроса. ..223
+Ограничение сложности запроса. ....226
+Движок Apollo. ..229
+Дальнейшее обучение. .230
+Инкрементная миграция. ..230
+В первую очередь — разработка схемы. ....232
+События GraphQL. ..234
+Сообщество. .235
+Сообщество Slack Channels. ...236
+Об авторах. ...238
+Об иллюстрации на обложке. .239
