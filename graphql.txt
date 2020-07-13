@@ -935,6 +935,16 @@ query listPhotos {
 -----Сервер apollo-server-express. ..135
   http://localhost:4000/graphql
 
+чтобы http://localhost:4000/playground
+надо установив вспомогательный пакет graphql-playground-middleware-express:
+    npm install graphql-playground-middleware-express
+
+/ — для домашней страницы;
+/graphql — для конечной точки GraphQL;
+/playground — для GraphQL Playground.
+
+
+
 
 -----Контекст. ..138
 -----Установка MongoDB. ....139
