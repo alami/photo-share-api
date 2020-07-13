@@ -894,6 +894,45 @@ query listPhotos {
 }
 
 -----Пользовательские скаляры. ...130
+стандартные типы : Int, Float, String, Boolean и ID,
+но можно создать собственный скалярный тип
+  => создать правила о том, как тип должен быть сериализован и проверен.
+ напр. "created": необходимо сопоставить с распознавателем типа "DateTime"
+    var d = new Date("4/18/2018")
+    console.log( d.toISOString() )  --в строку даты в формате ISO "2018-04-18T07:00:00.000Z"
+мы сериализуем (serialize) это значение как строку в формате ISO:
+    const serialize = value => new Date(value).toISOString()
+
+--Этот запрос вернет список фотографий, сделанных после определенной даты:
+type Query {
+    ...
+    allPhotos(after: DateTime): [Photo!]!
+    }
+
+query recentPhotos(after:DateTime) {
+    allPhotos(after: $after) {
+        name
+        url
+    }
+}
+{
+"after": "4/18/2018"
+}
+query {
+    allPhotos(after: "4/18/2018") {
+        name
+        url
+    }
+}
+--можем видеть эти даты и типы, отформатированные как строки в формате даты ISO:
+query listPhotos {
+    allPhotos {
+        name
+        created
+    }
+}
+
+
 -----Сервер apollo-server-express. ..135
 -----Контекст. ..138
 -----Установка MongoDB. ....139
