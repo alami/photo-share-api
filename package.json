@@ -13,6 +13,7 @@
   "dependencies": {
     "apollo-server": "^2.15.1",
     "graphql": "^15.3.0",
+    "graphql-playground-middleware-express": "^1.7.18",
     "nodemon": "^2.0.4"
   }
 }

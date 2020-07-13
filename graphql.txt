@@ -932,8 +932,10 @@ query listPhotos {
     }
 }
 
-
 -----Сервер apollo-server-express. ..135
+  http://localhost:4000/graphql
+
+
 -----Контекст. ..138
 -----Установка MongoDB. ....139
 -----Добавление базы данных к контексту. .140
